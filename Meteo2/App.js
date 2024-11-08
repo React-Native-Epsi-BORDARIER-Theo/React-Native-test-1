@@ -9,48 +9,62 @@ import * as Location from 'expo-location';
 //Asukakey
 export default function App() {
   const [location, setLocation] = useState(null);
+  const [weather, setWeather] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const API_key = "06866d93dfd89a0196449190e5751425";
   let lat = "";
   let lon = "";
   let response = "vide";
+  console.log("1) Start")
+
+  
 
   useEffect(() => {
     (async () => {
-      
+
+      console.log(`4) useEffect Avant Location`);
+
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
         return;
       }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+      setLocation(await Location.getCurrentPositionAsync({}));
+      console.log(`5) useEffect Après Location`);
     })();
   }, []);
 
-  let text = 'Waiting..';
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) async () => {
-    text = JSON.stringify(location);
-    lat = location.lat;
-    lon = location.lon;
+  useEffect(() => {
+    getData();
     
-    let api_meteo_url =  "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_key}";
-    
-    response = await fetch(api_meteo_url);
-    let reponseJson = await reponse.json();
+  }, [location])
 
+  useEffect(() => {
+    console.log(weather);
+  }, [weather])
+  
+  const getData = async () => {
+    let api_meteo_url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${API_key}`;
 
-    
+    try {
+      response = await fetch(api_meteo_url);
+      if (!response.ok) {
+        console.log(`2) response no ok ${response.ok} || lat = ${location.lat}, lon = ${location.lon}, key = ${API_key}`);
+        throw new Error(`Response status: ${response.status}`);
+      } else {
+        console.log("3) response ok");
+        setWeather(await response.json());
+      }
+
+    } catch (error) {
+      console.error(error.message);
+    }
   }
 
   return (
     <View style={styles.container}>
-      <Text> Vos waifu préféré vous présent la méthéo : {text} </Text>
-      <text> {reponseJson.api_meteo_url}
-      </text>
+      <Text> Vos waifu préféré vous présent la météo !!</Text>
+      <Text> {console.log("&) Update")}  a  </Text>
       {/* <StatusBar style="auto" /> */}
     </View>
   );
